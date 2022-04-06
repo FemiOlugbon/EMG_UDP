@@ -10,7 +10,7 @@
 #define MYOWARE_PIN_2  35   // myoware 1 signal pin
 #define LED_PIN 2
 
-#define BUFFER_SIZE 1024
+#define BUFFER_SIZE 256
 
 
 
@@ -74,6 +74,9 @@ void onDataSent(const uint8_t *outgoingData, int len)
       udp.write(data, idx);
       memcpy(data, outgoingData, len);
       idx = len;
+      #ifdef DEBUG
+        Serial.println("Data Transmitted!");
+      #endif
     }
     lastSentTime = millis();
   }
