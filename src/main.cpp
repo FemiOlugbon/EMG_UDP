@@ -79,32 +79,39 @@ void onDataSent(const uint8_t *outgoingData, int len)
   }
 }
 
-// Data sampling routine
-void dataSampling(void *parameter)
-{
-  if (micros() - lastSampleTime >= SAMPLING_INTERVAL)
-  {
-    // Increment the last sample time
-    lastSampleTime += SAMPLING_INTERVAL;
-    
-    // Sample here
-    uint16_t emg1 = analogRead(MYOWARE_PIN_1);
-    uint16_t emg2 = analogRead(MYOWARE_PIN_2);
-
-    // pack the data into the struct.
-    myoWare.counter++;
-    myoWare.emg[0] = emg1;
-    myoWare.emg[1] = emg2;
-
-    // Send the data out
-    onDataSent((uint8_t *) &myoWare, sizeof(myoWare));
-  }
-  vTaskDelete(NULL);
-}
-
+// Debug Data
 void printData(EMGData incomingData)
 {
   Serial.print("Counter:  ");Serial.print(incomingData.counter);Serial.print("  ");Serial.print("Myoware_1:  "); Serial.print(incomingData.emg[0]);Serial.print("  ");Serial.print("Myoware_2:  "); Serial.print(incomingData.emg[1]);Serial.print("\n");
+}
+
+// Data sampling routine
+void dataSampling(void *parameter)
+{
+  while (true)
+  {
+    if (micros() - lastSampleTime >= SAMPLING_INTERVAL)
+    {
+      // Increment the last sample time
+      lastSampleTime += SAMPLING_INTERVAL;
+
+      // Sample here
+      uint16_t emg1 = analogRead(MYOWARE_PIN_1);
+      uint16_t emg2 = analogRead(MYOWARE_PIN_2);
+
+      // pack the data into the struct.
+      myoWare.counter++;
+      myoWare.emg[0] = emg1;
+      myoWare.emg[1] = emg2;
+
+      // Send the data out
+      onDataSent((uint8_t *) &myoWare, sizeof(myoWare));
+    }
+    #ifdef DEBUG
+      printData(myoWare);
+    #endif
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
+  }
 }
 
 void setup() {
@@ -188,8 +195,4 @@ void loop() {
     digitalWrite(LED_PIN, HIGH);
   }
   delay(INTERVAL_MS);
-
-  #ifdef DEBUG
-    printData(myoWare);
-  #endif
 }
