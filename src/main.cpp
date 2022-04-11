@@ -93,8 +93,8 @@ void dataSampling(void *parameter)
 {
   while (true)
   {
-    if (micros() - lastSampleTime >= SAMPLING_INTERVAL)
-    {
+    // if (micros() - lastSampleTime >= SAMPLING_INTERVAL)
+    // {
       // Increment the last sample time
       lastSampleTime += SAMPLING_INTERVAL;
 
@@ -114,7 +114,7 @@ void dataSampling(void *parameter)
       printData(myoWare);
     #endif
     vTaskDelay(1000 / portTICK_PERIOD_MS);
-  }
+  // }
 }
 
 void setup() {
