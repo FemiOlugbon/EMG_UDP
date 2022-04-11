@@ -19,7 +19,7 @@
 
 // Sampling rate 
 // 100 us is equivalent to 1kHz sampling frequency.
-#define SAMPLING_INTERVAL 1000     // this value is defined in micro seconds
+#define SAMPLING_INTERVAL 200     // this value is defined in milli seconds
 
 // Set WiFi Speed
 #define WIFI_DATA_RATE WIFI_PHY_RATE_54M // WIFI_PHY_RATE_11M_S
@@ -36,6 +36,7 @@ typedef struct __attribute__((__packed__)) EMGData
   uint8_t header[2] = {0xAA, BOARD_ID};
   uint32_t counter = 0; 
   uint16_t emg[2];  // Raw ADC readings
+  uint8_t  gesture = 1;
 } EMGData;
 
 // EMG data sent
@@ -85,6 +86,8 @@ void onDataSent(const uint8_t *outgoingData, int len)
 // Debug Data
 void printData(EMGData incomingData)
 {
+  Serial.print(millis()- lastSampleTime);
+  lastSampleTime = millis();
   Serial.print("Counter:  ");Serial.print(incomingData.counter);Serial.print("  ");Serial.print("Myoware_1:  "); Serial.print(incomingData.emg[0]);Serial.print("  ");Serial.print("Myoware_2:  "); Serial.print(incomingData.emg[1]);Serial.print("\n");
 }
 
@@ -96,8 +99,9 @@ void dataSampling(void *parameter)
     // if (micros() - lastSampleTime >= SAMPLING_INTERVAL)
     // {
       // Increment the last sample time
-      lastSampleTime += SAMPLING_INTERVAL;
+      // lastSampleTime += SAMPLING_INTERVAL;
 
+      
       // Sample here
       uint16_t emg1 = analogRead(MYOWARE_PIN_1);
       uint16_t emg2 = analogRead(MYOWARE_PIN_2);
@@ -113,7 +117,8 @@ void dataSampling(void *parameter)
     #ifdef DEBUG
       printData(myoWare);
     #endif
-    vTaskDelay(1000 / portTICK_PERIOD_MS);
+    
+    vTaskDelay(200 / portTICK_PERIOD_MS);
   // }
 }
 
