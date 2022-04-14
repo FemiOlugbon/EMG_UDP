@@ -19,7 +19,7 @@
 
 // Sampling rate 
 // 100 us is equivalent to 1kHz sampling frequency.
-#define SAMPLING_INTERVAL 200     // this value is defined in milli seconds
+#define SAMPLING_INTERVAL 200     // this value is defined in micro seconds
 
 // Set WiFi Speed
 #define WIFI_DATA_RATE WIFI_PHY_RATE_54M // WIFI_PHY_RATE_11M_S
@@ -86,8 +86,7 @@ void onDataSent(const uint8_t *outgoingData, int len)
 // Debug Data
 void printData(EMGData incomingData)
 {
-  Serial.print(millis()- lastSampleTime);
-  lastSampleTime = millis();
+  
   Serial.print("Counter:  ");Serial.print(incomingData.counter);Serial.print("  ");Serial.print("Myoware_1:  "); Serial.print(incomingData.emg[0]);Serial.print("  ");Serial.print("Myoware_2:  "); Serial.print(incomingData.emg[1]);Serial.print("\n");
 }
 
@@ -96,30 +95,24 @@ void dataSampling(void *parameter)
 {
   while (true)
   {
-    // if (micros() - lastSampleTime >= SAMPLING_INTERVAL)
-    // {
+    if (millis() - lastSampleTime >= SAMPLING_INTERVAL)
+    {
       // Increment the last sample time
-      // lastSampleTime += SAMPLING_INTERVAL;
-
+      lastSampleTime += SAMPLING_INTERVAL;
       
       // Sample here
-      uint16_t emg1 = analogRead(MYOWARE_PIN_1);
-      uint16_t emg2 = analogRead(MYOWARE_PIN_2);
-
-      // pack the data into the struct.
       myoWare.counter++;
-      myoWare.emg[0] = emg1;
-      myoWare.emg[1] = emg2;
+      myoWare.emg[0] = analogRead(MYOWARE_PIN_1);
+      myoWare.emg[1] = analogRead(MYOWARE_PIN_2);
 
       // Send the data out
       onDataSent((uint8_t *) &myoWare, sizeof(myoWare));
-    }
-    #ifdef DEBUG
+      #ifdef DEBUG
       printData(myoWare);
-    #endif
-    
-    vTaskDelay(200 / portTICK_PERIOD_MS);
-  // }
+      #endif
+    }
+    // vTaskDelay(1000 / portTICK_PERIOD_MS);
+  }
 }
 
 void setup() {
@@ -184,7 +177,7 @@ void setup() {
   data = (uint8_t *)malloc(BUFFER_SIZE);
 
   // Create a tasks to handle data transmission
-  xTaskCreate(dataSampling, "dataSampling", 1000, NULL, 1, NULL);
+  xTaskCreate(dataSampling, "dataSampling", 5000, NULL, 1, NULL);
 }
 
 void loop() {
